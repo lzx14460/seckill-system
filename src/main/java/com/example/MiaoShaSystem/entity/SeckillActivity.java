@@ -9,8 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * <p>
@@ -21,16 +19,15 @@ import lombok.Setter;
  * @since 2026-10-04
  */
 @Data
-@TableName("seckill_goods")
-public class SeckillGoods implements Serializable {
+@TableName("seckill_activity")
+public class SeckillActivity implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @TableField("goods_id")
-    private Long goodsId;
+
 
     @TableField("seckill_price")
     private BigDecimal seckillPrice;

@@ -31,12 +31,14 @@ public class SeckillOrder implements Serializable {
     @TableField("user_id")
     private Long userId;
 
-    @TableField("goods_id")
-    private Long goodsId;
+    @TableField("product_id")
+    private Long productId;
 
     @TableField("order_no")
     private String orderNo;
 
     @TableField("create_time")
     private LocalDateTime createTime;
+    @TableField("activity_id")
+    private Long activityId;
 }

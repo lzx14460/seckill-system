@@ -1,6 +1,8 @@
 package com.example.MiaoShaSystem.service;
 
 import com.example.MiaoShaSystem.common.Result;
+import com.example.MiaoShaSystem.dto.LoginDTO;
+import com.example.MiaoShaSystem.dto.RegisterDTO;
 import com.example.MiaoShaSystem.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpSession;
@@ -14,6 +16,6 @@ import jakarta.servlet.http.HttpSession;
  * @since 2026-10-03
  */
 public interface IUserService extends IService<User> {
-    Result register(User user);
-    Result login(User user, HttpSession session);
+    Result register(RegisterDTO dto);
+    Result login(LoginDTO dto, HttpSession session);
 }

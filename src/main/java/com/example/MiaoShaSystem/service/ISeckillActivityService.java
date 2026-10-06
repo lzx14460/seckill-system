@@ -14,18 +14,23 @@ import com.example.MiaoShaSystem.entity.SeckillOrder;
  * @author lzx
  * @since 2026-10-04
  */
-public interface ISeckillGoodsService extends IService<SeckillActivity> {
+public interface ISeckillActivityService extends IService<SeckillActivity> {
     /**
      * 补货
-     * @param seckillGoodsId 活动 id
+     * @param activityId 活动 id
      * @param count 补货数量
      * @return 补货后的 Redis 剩余库存
      */
-    Long addStock(Long seckillGoodsId, Integer count);
+    Long addStock(Long activityId, Integer count);
     /**
      * 分页查询某活动的订单
      */
     IPage<SeckillOrder> pageOrdersByActivity(Long activityId, Integer pageNum, Integer pageSize);
     IPage<SeckillActivity> pageActivities(Integer pageNum, Integer pageSize, Byte status, String name);
     Long createOrUpdateActivity(SeckillActivitySaveDTO dto);
+    /**
+     * 取消活动
+     * @param activityId 活动 id
+     */
+    void cancelActivity(Long activityId);
 }

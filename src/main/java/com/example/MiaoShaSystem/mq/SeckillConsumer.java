@@ -1,67 +1,73 @@
 package com.example.MiaoShaSystem.mq;
 
+import com.example.MiaoShaSystem.common.SeckillResult;
 import com.example.MiaoShaSystem.config.RabbitMQConfig;
-import com.example.MiaoShaSystem.entity.SeckillGoods;
+import com.example.MiaoShaSystem.entity.SeckillActivity;
 import com.example.MiaoShaSystem.entity.SeckillOrder;
-import com.example.MiaoShaSystem.mapper.SeckillGoodsMapper;
+import com.example.MiaoShaSystem.mapper.SeckillActivityMapper;
 import com.example.MiaoShaSystem.mapper.SeckillOrderMapper;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
-/**
- * 秒杀消息消费者
- * <p>
- * 监听 seckill.queue 队列，收到消息后异步创建订单。
- * 这样秒杀接口不用等数据库操作，直接返回。
- */
 @Component
 public class SeckillConsumer {
-
+    private static final Logger log = LoggerFactory.getLogger(SeckillConsumer.class);
     @Autowired
     private SeckillOrderMapper seckillOrderMapper;
 
     @Autowired
-    private SeckillGoodsMapper seckillGoodsMapper;
+    private SeckillActivityMapper seckillActivityMapper;
 
-    /**
-     * 监听队列，有消息时自动调用
-     *
-     * @param message 消息对象，Spring AMQP 自动从 JSON 反序列化
-     */
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     @RabbitListener(queues = RabbitMQConfig.SECKILL_QUEUE)
     public void handle(SeckillMessage message) {
         Long userId = message.getUserId();
-        Long seckillGoodsId = message.getSeckillGoodsId();
+        Long activityId = message.getActivityId();         // ← 改这里
+        String requestId = message.getRequestId();
+        String resultKey = "seckill:result:" + requestId;
 
-        // 1. 查秒杀商品信息
-        SeckillGoods goods = seckillGoodsMapper.selectById(seckillGoodsId);
-        if (goods == null) {
-            return;
+        try {
+            // 1. 查活动
+            SeckillActivity activity = seckillActivityMapper.selectById(activityId);
+            if (activity == null) {
+                redisTemplate.opsForValue().set(resultKey, SeckillResult.fail("活动不存在"), 5, TimeUnit.MINUTES);
+                return;
+            }
+
+            // 2. 扣数据库库存
+            int rows = seckillActivityMapper.decreaseStock(activityId);
+            if (rows == 0) {
+                redisTemplate.opsForValue().set(resultKey, SeckillResult.fail("库存不足"), 5, TimeUnit.MINUTES);
+                return;
+            }
+
+            // 3. 创建订单（写 activityId + 真实 goodsId）
+            SeckillOrder order = new SeckillOrder();
+            order.setUserId(userId);
+            order.setActivityId(activityId);
+            order.setProductId(activity.getProductId());
+            order.setOrderNo(generateOrderNo());
+            order.setCreateTime(LocalDateTime.now());
+            seckillOrderMapper.insert(order);
+
+            // 4. 更新结果为成功
+            redisTemplate.opsForValue().set(resultKey, SeckillResult.success(order.getOrderNo()), 5, TimeUnit.MINUTES);
+
+        } catch (Exception e) {
+            log.error("秒杀消费异常, requestId={}, activityId={}, userId={}",
+                    requestId, activityId, userId, e);    // ← 加这行
+            redisTemplate.opsForValue().set(resultKey, SeckillResult.fail("系统繁忙"), 5, TimeUnit.MINUTES);
         }
-
-        // 2. 扣减数据库库存
-        // 用 SQL 直接扣，并带上 stock > 0 条件，防止数据库层面超卖
-        int rows = seckillGoodsMapper.decreaseStock(seckillGoodsId);
-        if (rows == 0) {
-            // 数据库库存已经为 0，说明被其他渠道扣完了，不创建订单
-            return;
-        }
-
-        // 3. 创建订单
-        SeckillOrder order = new SeckillOrder();
-        order.setUserId(userId);
-        order.setGoodsId(seckillGoodsId);
-        order.setOrderNo(generateOrderNo());
-        order.setCreateTime(LocalDateTime.now());
-        seckillOrderMapper.insert(order);
     }
 
-    /**
-     * 生成订单号：时间戳 + 三位随机数
-     */
     private String generateOrderNo() {
         return System.currentTimeMillis() + String.format("%03d", (int) (Math.random() * 1000));
     }

@@ -10,7 +10,7 @@ import lombok.Data;
  * <p>
  * 消息里只需要携带两个关键信息：
  * - 谁在秒杀（userId）
- * - 秒杀哪个商品（seckillGoodsId）
+ * - 秒杀哪个活动（activityId）
  */
 @Data
 public class SeckillMessage {
@@ -18,6 +18,9 @@ public class SeckillMessage {
     /** 秒杀的用户 ID */
     private Long userId;
 
-    /** 秒杀的商品 ID（seckill_goods 表的主键） */
-    private Long seckillGoodsId;
+    /** 秒杀活动 ID（seckill_goods 表的主键） */
+    private Long activityId;
+
+    /** 请求 ID（用于前端轮询结果） */
+    private String requestId;
 }

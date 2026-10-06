@@ -19,9 +19,16 @@ spring:
     port: 5672
     username: guest
     password: guest
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
   type-aliases-package: com.example.MiaoShaSystem.entity
   configuration:
     map-underscore-to-camel-case: true
+file:
+  upload-dir: ./uploads/          # 相对路径，会在项目根目录创建
+  access-prefix: /uploads/         # 访问 URL 前缀

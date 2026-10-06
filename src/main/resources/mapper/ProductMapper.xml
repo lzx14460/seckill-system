@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.MiaoShaSystem.mapper.ProductMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.example.MiaoShaSystem.entity.Product">
+        <id column="id" property="id" />
+        <result column="merchant_id" property="merchantId" />
+        <result column="title" property="title" />
+        <result column="sub_title" property="subTitle" />
+        <result column="cover_img" property="coverImg" />
+        <result column="detail" property="detail" />
+        <result column="price" property="price" />
+        <result column="seckill_price" property="seckillPrice" />
+        <result column="stock" property="stock" />
+        <result column="seckill_stock" property="seckillStock" />
+        <result column="status" property="status" />
+        <result column="created_at" property="createdAt" />
+        <result column="updated_at" property="updatedAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, merchant_id, title, sub_title, cover_img, detail, price, seckill_price, stock, seckill_stock, status, created_at, updated_at
+    </sql>
+
+</mapper>

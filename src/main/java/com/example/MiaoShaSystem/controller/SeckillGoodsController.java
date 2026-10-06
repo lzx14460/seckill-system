@@ -1,8 +1,8 @@
 package com.example.MiaoShaSystem.controller;
 
 import com.example.MiaoShaSystem.common.Result;
-import com.example.MiaoShaSystem.entity.SeckillGoods;
-import com.example.MiaoShaSystem.mapper.SeckillGoodsMapper;
+import com.example.MiaoShaSystem.entity.SeckillActivity;
+import com.example.MiaoShaSystem.mapper.SeckillActivityMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +27,7 @@ import java.util.List;
 public class SeckillGoodsController {
 
     @Autowired
-    private SeckillGoodsMapper seckillGoodsMapper;
+    private SeckillActivityMapper seckillActivityMapper;
 
     /**
      * 查询秒杀商品列表
@@ -35,7 +35,7 @@ public class SeckillGoodsController {
      */
     @GetMapping("/list")
     public Result list() {
-        List<SeckillGoods> list = seckillGoodsMapper.selectList(null);
+        List<SeckillActivity> list = seckillActivityMapper.selectList(null);
         return Result.success(list);
     }
 }

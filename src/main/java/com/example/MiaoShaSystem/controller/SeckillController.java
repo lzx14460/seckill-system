@@ -5,10 +5,7 @@ import com.example.MiaoShaSystem.common.ResultCode;
 import com.example.MiaoShaSystem.service.ISeckillService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 秒杀接口
@@ -40,5 +37,12 @@ public class SeckillController {
 
         // 调用 Service 执行秒杀
         return seckillService.seckill(userId, seckillGoodsId);
+    }
+    /**
+     * 查询秒杀结果
+     */
+    @GetMapping("/result/{requestId}")
+    public Result getResult(@PathVariable String requestId) {
+        return seckillService.getSeckillResult(requestId);
     }
 }

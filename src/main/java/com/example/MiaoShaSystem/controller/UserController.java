@@ -1,6 +1,8 @@
 package com.example.MiaoShaSystem.controller;
 
 import com.example.MiaoShaSystem.common.Result;
+import com.example.MiaoShaSystem.dto.LoginDTO;
+import com.example.MiaoShaSystem.dto.RegisterDTO;
 import com.example.MiaoShaSystem.entity.User;
 import com.example.MiaoShaSystem.mapper.UserMapper;
 import com.example.MiaoShaSystem.service.IUserService;
@@ -23,13 +25,13 @@ public class UserController {
     @Autowired
     private IUserService userService;
     @PostMapping("/register")
-    public Result register(@RequestBody User user){
-        return userService.register(user);
+    public Result register(@RequestBody RegisterDTO dto) {
+        return userService.register(dto);
     }
 
     @PostMapping("/login")
-    public Result login(@RequestBody User user, HttpSession httpSession){
-        return userService.login(user,httpSession);
+    public Result login(@RequestBody LoginDTO dto, HttpSession session) {
+        return userService.login(dto, session);
     }
     @GetMapping("/logout")
     public Result logout(HttpSession httpSession){

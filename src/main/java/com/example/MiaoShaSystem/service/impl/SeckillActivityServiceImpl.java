@@ -12,7 +12,7 @@ import com.example.MiaoShaSystem.entity.SeckillActivity;
 import com.example.MiaoShaSystem.entity.SeckillOrder;
 import com.example.MiaoShaSystem.mapper.SeckillActivityMapper;
 import com.example.MiaoShaSystem.mapper.SeckillOrderMapper;
-import com.example.MiaoShaSystem.service.ISeckillGoodsService;
+import com.example.MiaoShaSystem.service.ISeckillActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,48 +24,42 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Collections;
-/**
- * <p>
- *  服务实现类
- * </p>
- *
- * @author lzx
- * @since 2026-10-04
- */
+
 @Service
-public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, SeckillActivity> implements ISeckillGoodsService {
+public class SeckillActivityServiceImpl extends ServiceImpl<SeckillActivityMapper, SeckillActivity> implements ISeckillActivityService {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     private volatile String addStockLua;
+
     @Autowired
     private SeckillOrderMapper seckillOrderMapper;
 
     @Override
     @Transactional
-    public Long addStock(Long seckillGoodsId, Integer count) {
+    public Long addStock(Long activityId, Integer count) {
         if (count == null || count <= 0) {
             throw new BizException("补货数量必须大于0");
         }
 
         // 1. 校验活动存在 + 归属
-        SeckillActivity goods = getById(seckillGoodsId);
-        if (goods == null) {
+        SeckillActivity activity = getById(activityId);
+        if (activity == null) {
             throw new BizException("活动不存在");
         }
-        if (goods.getMerchantId() == null
-                || !goods.getMerchantId().equals(CurrentUserUtil.getUserId())) {
-            throw new BizException(ResultCode.NO_PERMISSION);
+        if (activity.getMerchantId() == null
+                || !activity.getMerchantId().equals(CurrentUserUtil.getUserId())) {
+            throw new BizException(ResultCode.ACTIVITY_NOT_OWNED);
         }
 
         // 2. 只有进行中的活动能补货
-        if (goods.getStatus() == null || goods.getStatus() != 1) {
+        if (activity.getStatus() == null || activity.getStatus() != (byte) 1) {
             throw new BizException("只有进行中的活动可以补货");
         }
 
         // 3. Lua INCRBY（原子加）
-        String stockKey = "seckill:stock:" + seckillGoodsId;
+        String stockKey = "seckill:stock:" + activityId;
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
         script.setScriptText(loadAddStockLua());
         script.setResultType(Long.class);
@@ -81,13 +75,12 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, 
         }
 
         // 4. 同步 DB
-        goods.setStock(goods.getStock() + count);
-        goods.setTotalStock(goods.getTotalStock() + count);
-        updateById(goods);
+        activity.setStock(activity.getStock() + count);
+        activity.setTotalStock(activity.getTotalStock() + count);
+        updateById(activity);
 
         return newStock;
     }
-
 
     @Override
     public IPage<SeckillOrder> pageOrdersByActivity(Long activityId, Integer pageNum, Integer pageSize) {
@@ -98,7 +91,7 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, 
         }
         if (activity.getMerchantId() == null
                 || !activity.getMerchantId().equals(CurrentUserUtil.getUserId())) {
-            throw new BizException(ResultCode.NO_PERMISSION);
+            throw new BizException(ResultCode.ACTIVITY_NOT_OWNED);
         }
 
         // 2. 查订单（新老兼容）
@@ -107,7 +100,7 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, 
                 .eq(SeckillOrder::getActivityId, activityId)
                 .or(sub -> sub
                         .isNull(SeckillOrder::getActivityId)
-                        .eq(SeckillOrder::getGoodsId, activity.getGoodsId())
+                        .eq(SeckillOrder::getProductId, activity.getProductId())
                 )
         );
         qw.orderByDesc(SeckillOrder::getCreateTime);
@@ -129,27 +122,10 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, 
         return page(new Page<>(pageNum, pageSize), qw);
     }
 
-    private String loadAddStockLua() {
-        if (addStockLua == null) {
-            synchronized (this) {
-                if (addStockLua == null) {
-                    try {
-                        ClassPathResource resource = new ClassPathResource("lua/addStock.lua");
-                        byte[] bytes = resource.getInputStream().readAllBytes();
-                        addStockLua = new String(bytes, StandardCharsets.UTF_8);
-                    } catch (Exception e) {
-                        throw new RuntimeException("读取 addStock.lua 失败", e);
-                    }
-                }
-            }
-        }
-        return addStockLua;
-    }
-
     @Override
     @Transactional
     public Long createOrUpdateActivity(SeckillActivitySaveDTO dto) {
-        // 1. 校验时间
+        // 1. 校验
         if (dto.getStartTime() == null || dto.getEndTime() == null) {
             throw new BizException("开始/结束时间不能为空");
         }
@@ -173,26 +149,26 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, 
             SeckillActivity activity = new SeckillActivity();
             activity.setMerchantId(userId);
             activity.setProductId(dto.getProductId());
-            activity.setGoodsId(dto.getProductId());   // 也可以 = dto.getGoodsId()
             activity.setName(dto.getName());
             activity.setSeckillPrice(dto.getSeckillPrice());
             activity.setStock(dto.getTotalStock());
             activity.setTotalStock(dto.getTotalStock());
             activity.setStartTime(dto.getStartTime());
             activity.setEndTime(dto.getEndTime());
-            activity.setStatus((byte) 0);   // 未开始
+            activity.setStatus((byte) 0);
             save(activity);
             return activity.getId();
         } else {
-            // 编辑：只能改未开始的活动
+            // 编辑
             SeckillActivity activity = getById(dto.getId());
             if (activity == null) {
                 throw new BizException("活动不存在");
             }
-            if (!activity.getMerchantId().equals(userId)) {
-                throw new BizException(ResultCode.NO_PERMISSION);
+            if (activity.getMerchantId() == null
+                    || !activity.getMerchantId().equals(userId)) {
+                throw new BizException(ResultCode.ACTIVITY_NOT_OWNED);
             }
-            if (activity.getStatus() != 0) {
+            if (activity.getStatus() == null || activity.getStatus() != (byte) 0) {
                 throw new BizException("只有未开始的活动可以编辑");
             }
             activity.setName(dto.getName());
@@ -204,5 +180,52 @@ public class SeckillGoodsServiceImpl extends ServiceImpl<SeckillActivityMapper, 
             updateById(activity);
             return activity.getId();
         }
+    }
+
+    private String loadAddStockLua() {
+        if (addStockLua == null) {
+            synchronized (this) {
+                if (addStockLua == null) {
+                    try {
+                        ClassPathResource resource = new ClassPathResource("lua/addStock.lua");
+                        byte[] bytes = resource.getInputStream().readAllBytes();
+                        addStockLua = new String(bytes, StandardCharsets.UTF_8);
+                    } catch (Exception e) {
+                        throw new RuntimeException("读取 addStock.lua 失败", e);
+                    }
+                }
+            }
+        }
+        return addStockLua;
+
+    }
+    @Override
+    @Transactional
+    public void cancelActivity(Long activityId) {
+        // 1. 校验
+        SeckillActivity activity = getById(activityId);
+        if (activity == null) {
+            throw new BizException("活动不存在");
+        }
+        if (activity.getMerchantId() == null
+                || !activity.getMerchantId().equals(CurrentUserUtil.getUserId())) {
+            throw new BizException(ResultCode.ACTIVITY_NOT_OWNED);
+        }
+        if (activity.getStatus() == null) {
+            throw new BizException("活动状态异常");
+        }
+        // 只有未开始 / 进行中可以取消
+        if (activity.getStatus() != (byte) 0 && activity.getStatus() != (byte) 1) {
+            throw new BizException("只有未开始或进行中的活动可以取消");
+        }
+
+        // 2. 如果进行中，清理 Redis 库存
+        if (activity.getStatus() == (byte) 1) {
+            stringRedisTemplate.delete("seckill:stock:" + activityId);
+        }
+
+        // 3. 改成已取消
+        activity.setStatus((byte) 3);
+        updateById(activity);
     }
 }
