@@ -43,4 +43,18 @@ public class SeckillGoods implements Serializable {
 
     @TableField("end_time")
     private LocalDateTime endTime;
+    @TableField("product_id")
+    private Long productId;
+
+    @TableField("merchant_id")
+    private Long merchantId;
+
+    @TableField("name")
+    private String name;
+
+    @TableField("total_stock")
+    private Integer totalStock;
+    @TableField("status")
+    private Byte status;
+
 }

@@ -3,7 +3,7 @@
 <mapper namespace="com.example.MiaoShaSystem.mapper.SeckillGoodsMapper">
 
     <!-- 通用查询映射结果 -->
-    <resultMap id="BaseResultMap" type="com.example.MiaoShaSystem.entity.SeckillGoods">
+    <resultMap id="BaseResultMap" type="com.example.MiaoShaSystem.entity.SeckillActivity">
         <id column="id" property="id" />
         <result column="goods_id" property="goodsId" />
         <result column="seckill_price" property="seckillPrice" />
