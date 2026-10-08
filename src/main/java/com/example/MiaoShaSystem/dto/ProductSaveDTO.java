@@ -13,4 +13,5 @@ public class ProductSaveDTO {
     private String detail;
     private BigDecimal price;
     private Integer stock;
+    private String category;
 }

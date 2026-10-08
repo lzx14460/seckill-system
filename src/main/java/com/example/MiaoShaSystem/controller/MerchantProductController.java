@@ -43,4 +43,8 @@ public class MerchantProductController {
     public Result delete(@PathVariable Long id) {
         return Result.success(productService.softDelete(id));
     }
+    @GetMapping("/{id}/stats")
+    public Result stats(@PathVariable Long id) {
+        return Result.success(productService.getStats(id));
+    }
 }

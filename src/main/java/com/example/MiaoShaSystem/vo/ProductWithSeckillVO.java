@@ -15,7 +15,7 @@ public class ProductWithSeckillVO {
     private BigDecimal price;
     private Integer stock;
     private String shopName;
-
+    private String category;
     /** 秒杀信息（为 null 表示不参加秒杀） */
     private SeckillInfo seckill;
 

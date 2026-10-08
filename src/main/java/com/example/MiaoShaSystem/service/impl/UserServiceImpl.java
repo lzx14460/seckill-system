@@ -77,6 +77,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if ("MERCHANT".equals(role)) {
             user.setShopName(dto.getShopName());
         }
+        // 商家需要审核，买家免审
+        if ("MERCHANT".equals(role)) {
+            user.setAuditStatus((byte) 0);   // 待审核
+        } else {
+            user.setAuditStatus((byte) 1);   // 已通过
+        }
+        user.setBanned((byte) 0);
         this.save(user);
         System.out.println("注册参数: " + dto);
         return Result.success("注册成功", null);
@@ -112,6 +119,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (!dto.getRole().equals(dbuser.getRole())) {
             String realRole = "MERCHANT".equals(dbuser.getRole()) ? "商家" : "买家";
             return Result.fail("该账号是「" + realRole + "」，请选择正确身份登录");
+        }
+        // 封禁校验
+        if (dbuser.getBanned() != null && dbuser.getBanned() == 1) {
+            return Result.fail("账号已被封禁，请联系管理员");
+        }
+
+        // 商家审核校验
+        if ("MERCHANT".equals(dbuser.getRole())) {
+            if (dbuser.getAuditStatus() == null || dbuser.getAuditStatus() == 0) {
+                return Result.fail("商家账号审核中，请等待管理员通过");
+            }
+            if (dbuser.getAuditStatus() == 2) {
+                String remark = dbuser.getAuditRemark();
+                return Result.fail("商家审核未通过" + (remark != null && !remark.isEmpty() ? "：" + remark : ""));
+            }
         }
 
         // 4. 写 Session

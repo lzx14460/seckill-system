@@ -33,7 +33,7 @@ public class CodeGenerator {
                             ));
                 })
                 .strategyConfig(builder -> {
-                    builder.addInclude("user", "goods", "seckill_order","seckill_goods","product")
+                    builder.addInclude("user", "goods", "seckill_order","seckill_goods","product","banner","operation_log")
                             .entityBuilder()
                             .enableLombok()
                             .enableTableFieldAnnotation()

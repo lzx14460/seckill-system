@@ -12,6 +12,7 @@ import com.example.MiaoShaSystem.service.ISeckillActivityService;
 import com.example.MiaoShaSystem.service.IUserService;
 import com.example.MiaoShaSystem.vo.ProductWithSeckillVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -33,15 +34,19 @@ public class ProductController {
     @GetMapping("/list")
     public Result list(
             @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "20") Integer pageSize) {
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestParam(required = false) String category){
 
         // 1. 分页查上架商品
-        IPage<Product> productPage = productService.page(
-                new Page<>(pageNum, pageSize),
-                new LambdaQueryWrapper<Product>()
-                        .eq(Product::getStatus, (byte) 1)
-                        .orderByDesc(Product::getCreatedAt)
-        );
+
+        LambdaQueryWrapper<Product> qw = new LambdaQueryWrapper<Product>()
+                .eq(Product::getStatus, (byte) 1)
+                .eq(Product::getAuditStatus, (byte) 1)
+                .eq(StringUtils.hasText(category) && !"全部".equals(category),
+                        Product::getCategory, category)
+                .orderByDesc(Product::getCreatedAt);
+
+        IPage<Product> productPage = productService.page(new Page<>(pageNum, pageSize), qw);
 
         List<Product> products = productPage.getRecords();
         if (products.isEmpty()) {
@@ -95,6 +100,7 @@ public class ProductController {
                     vo.setCoverImg(p.getCoverImg());
                     vo.setPrice(p.getPrice());
                     vo.setStock(p.getStock());
+                    vo.setCategory(p.getCategory());
                     vo.setShopName(merchantNameMap.getOrDefault(p.getMerchantId(), "官方店铺"));
 
                     SeckillActivity a = seckillMap.get(p.getId());

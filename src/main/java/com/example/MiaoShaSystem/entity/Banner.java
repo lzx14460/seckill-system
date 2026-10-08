@@ -5,63 +5,42 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * <p>
- * 商品表
+ * 
  * </p>
  *
  * @author lzx
- * @since 2026-10-05
+ * @since 2026-10-07
  */
 @Getter
 @Setter
-@TableName("product")
-public class Product implements Serializable {
+@TableName("banner")
+public class Banner implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 所属商家 user_id
-     */
-    @TableField("merchant_id")
-    private Long merchantId;
-
     @TableField("title")
     private String title;
 
-    @TableField("sub_title")
-    private String subTitle;
+    @TableField("image_url")
+    private String imageUrl;
 
-    @TableField("cover_img")
-    private String coverImg;
+    @TableField("link_url")
+    private String linkUrl;
 
-    @TableField("detail")
-    private String detail;
-
-    /**
-     * 原价
-     */
-    @TableField("price")
-    private BigDecimal price;
-
+    @TableField("sort_order")
+    private Integer sortOrder;
 
     /**
-     * 普通库存
-     */
-    @TableField("stock")
-    private Integer stock;
-
-
-    /**
-     * 0下架 1上架
+     * 0隐藏 1显示
      */
     @TableField("status")
     private Byte status;
@@ -71,11 +50,6 @@ public class Product implements Serializable {
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
-    @TableField("category")
-    private String category;
-    @TableField("audit_status")
-    private Byte auditStatus;
-
-    @TableField("audit_remark")
-    private String auditRemark;
+    @TableField("type")
+    private String type;
 }

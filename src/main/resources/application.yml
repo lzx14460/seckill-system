@@ -32,3 +32,12 @@ mybatis-plus:
 file:
   upload-dir: ./uploads/          # 相对路径，会在项目根目录创建
   access-prefix: /uploads/         # 访问 URL 前缀
+
+aliyun:
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    bucket: seckill-system-lzx
+    region: cn-hangzhou
+    role-arn: acs:ram::1275534496191707:role/seckill-sts-role
+    access-key-id: ${OSS_AK_ID:}                  # ← 从环境变量读
+    access-key-secret: ${OSS_AK_SECRET:}          # ← 从环境变量读

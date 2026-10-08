@@ -1,5 +1,6 @@
 package com.example.MiaoShaSystem.config;
 
+import com.example.MiaoShaSystem.interceptor.AdminAuthInterceptor;
 import com.example.MiaoShaSystem.interceptor.MerchantAuthInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +14,14 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private MerchantAuthInterceptor merchantAuthInterceptor;
+    @Autowired AdminAuthInterceptor  adminAuthInterceptor;
     @Value("${file.upload-dir}")
     private String uploadDir;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 管理员拦截器
+        registry.addInterceptor(adminAuthInterceptor)
+                .addPathPatterns("/api/admin/**");
         registry.addInterceptor(merchantAuthInterceptor)
                 .addPathPatterns("/api/merchant/**")
                 .excludePathPatterns("/api/merchant/login"); // 如果商家登录独立接口，排除

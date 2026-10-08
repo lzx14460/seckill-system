@@ -25,4 +25,10 @@ public class CurrentUserUtil {
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return attrs == null ? null : attrs.getRequest().getSession(false);
     }
+    public static String getUserName() {
+        HttpSession session = getSession();
+        if (session == null) return null;
+        Object name = session.getAttribute("userName");
+        return name == null ? null : name.toString();
+    }
 }

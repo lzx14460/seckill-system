@@ -5,6 +5,7 @@ import com.example.MiaoShaSystem.dto.ProductQueryDTO;
 import com.example.MiaoShaSystem.dto.ProductSaveDTO;
 import com.example.MiaoShaSystem.entity.Product;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.MiaoShaSystem.vo.ProductStatsVO;
 
 /**
  * <p>
@@ -27,4 +28,5 @@ public interface IProductService extends IService<Product> {
     /** 上下架 */
     boolean updateStatus(Long id, Byte status);
     boolean softDelete(Long id);
+    ProductStatsVO getStats(Long productId);
 }

@@ -8,4 +8,5 @@ public class ProductQueryDTO {
     private Integer pageSize = 10;
     private String title;
     private Byte status;
+    private String category;
 }

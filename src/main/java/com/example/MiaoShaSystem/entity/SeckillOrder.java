@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import lombok.Data;
@@ -41,4 +42,17 @@ public class SeckillOrder implements Serializable {
     private LocalDateTime createTime;
     @TableField("activity_id")
     private Long activityId;
+    @TableField("status")
+    private Byte status;
+
+    @TableField("product_title")
+    private String productTitle;
+
+    @TableField("seckill_price")
+    private BigDecimal seckillPrice;
+
+    @TableField("merchant_id")
+    private Long merchantId;
+    @TableField("cover_img")
+    private String coverImg;
 }

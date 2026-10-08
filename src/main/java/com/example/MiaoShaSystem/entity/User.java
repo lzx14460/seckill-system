@@ -45,4 +45,12 @@ public class User implements Serializable {
 
     @TableField("email")
     private String email;
+    @TableField("audit_status")
+    private Byte auditStatus;
+
+    @TableField("audit_remark")
+    private String auditRemark;
+
+    @TableField("banned")
+    private Byte banned;
 }

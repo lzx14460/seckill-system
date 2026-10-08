@@ -16,6 +16,7 @@ dist/
 
 # Logs
 *.log
+logs/
 
 # OS
 .DS_Store
@@ -26,3 +27,9 @@ uploads/
 
 # 压测结果
 *.jtl
+
+# 前端独立仓库，不提交到此仓库
+frontend/
+
+# 本地敏感配置（含 AK/SK）
+application-local.yml

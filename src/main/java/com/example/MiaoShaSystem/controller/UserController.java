@@ -38,5 +38,10 @@ public class UserController {
         httpSession.invalidate();
         return Result.success("已退出",null);
     }
+    @PostMapping("/admin/login")
+    public Result adminLogin(@RequestBody LoginDTO dto, HttpSession session) {
+        dto.setRole("ADMIN");   // 强制 ADMIN
+        return userService.login(dto, session);
+    }
 
 }
